@@ -87,18 +87,26 @@ LINE: while ( <> ) {
       my $bin = ms_to_bin( $timestamp );
 
       # process the event
+
+      my @arrivals_list;
+      my @capacity_list;
+      my @departures_list;
+
       if ( $event_type eq q{+} ) {
+        push @arrivals_list, $num_bits;
         $arrivals{ $bin } += $num_bits;
         $arrival_sum += $num_bits;
       } elsif ( $event_type eq q{d} ) {
           ; #noothing for now! We have drop!
       } elsif ( $event_type eq q{#} ) {
+        push @capacity_list, $num_bits;
         $capacity{ $bin } += $num_bits;
         $capacity_sum += $num_bits;
       } elsif ( $event_type eq q{-} ) {
         if ( not defined $delay ) {
           die q{Departure format: timestamp - num_bytes delay};
         }
+        push @departures_list, $num_bits;
         $departures{ $bin } += $num_bits;
 
         if ( $delay < 0 ) {
