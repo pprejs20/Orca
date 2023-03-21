@@ -4,6 +4,7 @@
 use warnings;
 use strict;
 use POSIX;
+use File::Path qw(make_path);
 
 sub usage
 {
@@ -38,6 +39,10 @@ my $arrival_sum;
 my $departure_sum;
 my @delays;
 my %signal_delay;
+
+my @arrivals_list;
+my @capacity_list;
+my @departures_list;
 
 LINE: while ( <> ) {
   chomp;
@@ -88,10 +93,6 @@ LINE: while ( <> ) {
 
       # process the event
 
-      my @arrivals_list;
-      my @capacity_list;
-      my @departures_list;
-
       if ( $event_type eq q{+} ) {
         push @arrivals_list, $num_bits;
         $arrivals{ $bin } += $num_bits;
@@ -129,6 +130,40 @@ LINE: while ( <> ) {
       }
   }
 }
+
+my $dir = 'patryk_logs';
+make_path($dir) unless -d $dir;
+# print "Opening Raw Data file in write mode"
+
+open(my $file, '>', "$dir/data.txt") or die "Could not open file: $!";
+
+
+print $file join(",", @arrivals_list), "\n";
+print $file join(",", @capacity_list), "\n";
+print $file join(",", @departures_list), "\n";
+print $file join(",", @delays), "\n";
+
+# print "Writing arrivals list"
+
+# print $file "Arrivals:\n";
+# print $file join(",", @arrivals_list), "\n";
+
+# # print "writing capacities"
+
+# print $file "Capacity:\n";
+# print $file join(",", @capacity_list), "\n";
+
+# # print "writing departures"
+
+# print $file "Departures:\n";
+# print $file join(",", @departures_list), "\n";
+
+# # print "writing delays"
+
+# print $file "Delays:\n";
+# print $file join(",", @delays), "\n";
+
+close($file);
 
 sub min {
   my $minval = POSIX::DBL_MAX;

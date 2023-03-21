@@ -409,6 +409,10 @@ void* CntThread(void* information)
     int get_info_error_counter=0;
     int actor_is_dead_counter=0;
     int tmp_step=0;
+
+    // Patryk variable
+    vector<double> cwnd_list;
+
     while(send_traffic)  
 	{
        for(int i=0;i<flow_index;i++)
@@ -425,6 +429,7 @@ void* CntThread(void* information)
                 }
                 if(orca_info.avg_urtt>0)
                 {
+                    cwnd_list.push_back(orca_info.cwnd);
                     t1=timestamp();
                     
                     double time_delta=(double)(t1-t0)/1000000.0;
@@ -566,8 +571,10 @@ void* CntThread(void* information)
     shmctl(shmid, IPC_RMID, NULL);
     shmdt(shared_memory_rl);
     shmctl(shmid_rl, IPC_RMID, NULL);
+
     return((void *)0);
 }
+
 void* DataThread(void* info)
 {
     /*
