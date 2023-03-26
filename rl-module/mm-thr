@@ -40,9 +40,11 @@ my $departure_sum;
 my @delays;
 my %signal_delay;
 
+# Patryk's Vars
 my @arrivals_list;
 my @capacity_list;
 my @departures_list;
+my @time_elapsed = ($last_timestamp - $first_timestamp)
 
 LINE: while ( <> ) {
   chomp;
