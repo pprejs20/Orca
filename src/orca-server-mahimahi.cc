@@ -28,21 +28,30 @@
 #include <cstdlib>
 #include <sys/select.h>
 #include "define.h"
+#include <vector>
+#include <iostream>
+#include <ostream>
+#include <fstream> 
 //#define CHANGE_TARGET 1
 #define MAX_CWND 10000
 #define MIN_CWND 4
 
+// Patryk Code
+int arg_len;
+float loss_value;
+
 int main(int argc, char **argv)
 {
+    arg_len = argc;
     DBGPRINT(DBGSERVER,4,"Main\n");
-    if(argc!=14)
-	{
-        DBGERROR("argc:%d\n",argc);
-        for(int i=0;i<argc;i++)
-        	DBGERROR("argv[%d]:%s\n",i,argv[i]);
-		usage();
-		return 0;
-	}
+    // if(argc!=14 || argc!=15)
+	// {
+    //     DBGERROR("argc:%d\n",argc);
+    //     for(int i=0;i<argc;i++)
+    //     	DBGERROR("argv[%d]:%s\n",i,argv[i]);
+	// 	usage();
+	// 	return 0;
+	// }
     
     srand(raw_timestamp());
 
@@ -68,6 +77,11 @@ int main(int argc, char **argv)
     duration=atoi(argv[11]);
     qsize=atoi(argv[12]);
     duration_steps=atoi(argv[13]);
+
+    // Patryk Code
+    if (argc == 15) {
+        loss_value=atof(argv[14]);
+    }
 
     start_server(flow_num, client_port);
 	DBGMARK(DBGSERVER,5,"DONE!\n");
@@ -148,12 +162,25 @@ void start_server(int flow_num, int client_port)
     sprintf(container_cmd,"sudo -u `whoami` %s/client $MAHIMAHI_BASE 1 %d",path,client_port);
     char cmd[1000];
     char final_cmd[1000];
-
-    if (first_time==4 || first_time==2)
-        sprintf(cmd, "sudo -u `whoami`   mm-delay %d mm-link %s/../traces/%s %s/../traces/%s --downlink-log=%s/log/down-%s --uplink-queue=droptail --uplink-queue-args=\"packets=%d\" --downlink-queue=droptail --downlink-queue-args=\"packets=%d\" -- sh -c \'%s\' &",delay_ms,path,uplink,path,downlink,path,log_file,qsize,qsize,container_cmd);
-    else
-        sprintf(cmd, "sudo -u `whoami`  mm-delay %d mm-link %s/../traces/%s %s/../traces/%s --uplink-queue=droptail --uplink-queue-args=\"packets=%d\" --downlink-queue=droptail --downlink-queue-args=\"packets=%d\" -- sh -c \'%s\' &",delay_ms,path,uplink,path,downlink,qsize,qsize,container_cmd);
+    // Patryk Altered code
     
+    if (arg_len == 15){ 
+        if (first_time==4 || first_time==2){
+            std::cout << "[Patryk Log] \nsudo -u `whoami` mm-loss " << loss_value << " mm-delay " << delay_ms << " mm-link " << path << "/../traces/" << uplink << " " << path << "/../traces/" << downlink << " --downlink-log=" << path << "/log/down-" << log_file << " --uplink-queue=droptail --uplink-queue-args=\"packets=" << qsize << "\" --downlink-queue=droptail --downlink-queue-args=\"packets=" << qsize << "\" -- sh -c \'" << container_cmd << "\' \n\n&";
+            sprintf(cmd, "sudo -u `whoami`   mm-loss %f mm-delay %d mm-link %s/../traces/%s %s/../traces/%s --downlink-log=%s/log/down-%s --uplink-queue=droptail --uplink-queue-args=\"packets=%d\" --downlink-queue=droptail --downlink-queue-args=\"packets=%d\" -- sh -c \'%s\' &",loss_value,delay_ms,path,uplink,path,downlink,path,log_file,qsize,qsize,container_cmd);
+        }
+        else{
+            sprintf(cmd, "sudo -u `whoami`  mm-loss %f mm-delay %d mm-link %s/../traces/%s %s/../traces/%s --uplink-queue=droptail --uplink-queue-args=\"packets=%d\" --downlink-queue=droptail --downlink-queue-args=\"packets=%d\" -- sh -c \'%s\' &",loss_value,delay_ms,path,uplink,path,downlink,qsize,qsize,container_cmd);
+        }
+    }
+    else {
+        if (first_time==4 || first_time==2)
+            sprintf(cmd, "sudo -u `whoami`   mm-delay %d mm-link %s/../traces/%s %s/../traces/%s --downlink-log=%s/log/down-%s --uplink-queue=droptail --uplink-queue-args=\"packets=%d\" --downlink-queue=droptail --downlink-queue-args=\"packets=%d\" -- sh -c \'%s\' &",delay_ms,path,uplink,path,downlink,path,log_file,qsize,qsize,container_cmd);
+        else
+            sprintf(cmd, "sudo -u `whoami`  mm-delay %d mm-link %s/../traces/%s %s/../traces/%s --uplink-queue=droptail --uplink-queue-args=\"packets=%d\" --downlink-queue=droptail --downlink-queue-args=\"packets=%d\" -- sh -c \'%s\' &",delay_ms,path,uplink,path,downlink,qsize,qsize,container_cmd);
+
+    }
+        
     sprintf(final_cmd,"%s",cmd);
 
     DBGPRINT(DBGSERVER,0,"%s\n",final_cmd);
@@ -348,6 +375,8 @@ void* TimerThread(void* information)
 }
 void* CntThread(void* information)
 {
+    std::cout << "[Patryk Logs] Starting control thread" << std::endl;
+
 /*    struct sched_param param;
     param.__sched_priority=sched_get_priority_max(SCHED_RR);
     int policy=SCHED_RR;
@@ -430,6 +459,7 @@ void* CntThread(void* information)
                 if(orca_info.avg_urtt>0)
                 {
                     cwnd_list.push_back(orca_info.cwnd);
+                    std::cout << "[Patryk Log] CWND: " << orca_info.cwnd << std::endl;
                     t1=timestamp();
                     
                     double time_delta=(double)(t1-t0)/1000000.0;
@@ -571,6 +601,33 @@ void* CntThread(void* information)
     shmctl(shmid, IPC_RMID, NULL);
     shmdt(shared_memory_rl);
     shmctl(shmid_rl, IPC_RMID, NULL);
+    
+    // Patryk Code
+
+    FILE *fp = fopen("patryk_logs/cwnd_list.txt", "w");
+    std::cout << "[Patryk Log] Opening new file in path: ../patryk_logs/data/cwnd_list.txt\n";
+
+    // Check if file was opened successfully
+    if (fp == NULL) {
+        printf("Error opening file.\n");
+        return ((void*)0);
+    }
+
+    int cwnd_list_size = cwnd_list.size();
+
+    /// Write the contents of cwnd_list to the file
+    std::ofstream file_stream;
+    file_stream.open("patryk_logs/cwnd_list.txt");
+
+    for (int i = 0; i < cwnd_list_size; i++) {
+        std::cout << "[Patryk Log] Saving CWND: " << cwnd_list[i] << std::endl;
+        file_stream << cwnd_list[i] << ",";
+        // fprintf(fp, "%d,", cwnd_list[i]);
+    }
+
+    // Close the file
+    file_stream.close();
+    fclose(fp);
 
     return((void *)0);
 }
