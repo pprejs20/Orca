@@ -44,7 +44,6 @@ my %signal_delay;
 my @arrivals_list;
 my @capacity_list;
 my @departures_list;
-my @time_elapsed = ($last_timestamp - $first_timestamp)
 
 LINE: while ( <> ) {
   chomp;
@@ -98,6 +97,7 @@ LINE: while ( <> ) {
       if ( $event_type eq q{+} ) {
         push @arrivals_list, $num_bits;
         $arrivals{ $bin } += $num_bits;
+
         $arrival_sum += $num_bits;
       } elsif ( $event_type eq q{d} ) {
           ; #noothing for now! We have drop!
@@ -139,11 +139,30 @@ make_path($dir) unless -d $dir;
 
 open(my $file, '>', "$dir/data.txt") or die "Could not open file: $!";
 
+print "Calculating throughputs";
+my @throughput_list;
+foreach my $bin (sort keys %departures) {
+    my $seconds = bin_to_seconds($bin);
+    if ($seconds != 0.0) {
+      my $throughput = $departures{$bin} / $seconds;
+      push @throughput_list, $throughput;
+  }
+    
+}
+
+
+
+
+print "saving the lists";
 
 print $file join(",", @arrivals_list), "\n";
 print $file join(",", @capacity_list), "\n";
 print $file join(",", @departures_list), "\n";
 print $file join(",", @delays), "\n";
+
+# print $file "Throughput:\n";
+print $file join(",", @throughput_list), "\n";
+
 
 # print "Writing arrivals list"
 
