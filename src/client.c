@@ -39,6 +39,8 @@
 #include <time.h>
 #include <inttypes.h>
 
+#include <iostream>
+
 #include "common.h"
 
 #define DBG 0
@@ -252,9 +254,16 @@ int main(int argc, char **argv)
     //DBGPRINT(0,0,"Request is sent to server ...\n");
     DBGMARK(DBG,1,"after sending request\n");
 	//Receive data
+	double len_sum = 0.0; 
+	int time_elapsed1 = 0;
+	int count = 0;
 	while(1)
 	{
-		double start_timestamp1 = (double)timestamp();
+		if (count == 0) {
+			std::cout << "\n\n Start time_elapsed1: " << time_elapsed1 << "\n\n";	
+		}
+		
+		int start_timestamp1 = timestamp();
 		len=recv(sockfd,buf,BUFSIZ,0);
 		if(len<=0)
 		{
@@ -263,9 +272,28 @@ int main(int argc, char **argv)
 		}
 
 		// Patryk Code
-		double elapsed_time = ((double)(timestamp() - start_timestamp1)) / 1000000.0; // this is in seconds
-		double throughput = ((double)len/1000000.0)/ elapsed_time;
-		fprintf(throughput_file, "%lf\n", throughput);
+		int elapsed_time = ((double)(timestamp() - start_timestamp1)); 
+		if (count < 5) {
+
+			std::cout << time_elapsed1 << "\n";
+			std::cout << "Calculation1: " << time_elapsed1 << "+ " << elapsed_time << "\n"; 
+			std::cout << "Calculation2: " <<  timestamp() << " - " << start_timestamp1 << "\n";
+			count++; 
+		}
+		time_elapsed1 += elapsed_time;
+		len_sum += len;
+
+		if (time_elapsed1 >= 500000) {
+			std::cout << "Time elapsed: " << time_elapsed1 << "\n";
+			double throughput = ((double)len_sum * 8)/ ((double)time_elapsed1 / 1000000.0); // this is in seconds
+			throughput = throughput / 1000000.0;
+			fprintf(throughput_file, "%lf\n", throughput);
+			time_elapsed1 = 0; 
+			len_sum = 0.0;
+
+		}
+		
+		
 
 	}
 	//Get end time after receiving all of the data 
