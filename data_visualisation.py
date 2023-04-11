@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 def read_data_from_files():
     read_lists = []
@@ -20,11 +21,13 @@ def read_data_from_files():
         read_lists.append([int(x) for x in line.split(',')[:-1]])
 
         line = file.readline()
-        print(line)
+        # print(line)
         read_lists.append([float(x) for x in line.split(',')[:-1]])
     with open('throughput.txt', 'r') as file:
         content = file.readlines() 
     content = [float(x.strip()) for x in content]
+    content = [x for x in content if x != float('inf')]
+    # print(read_lists[4])
 
 
     return {
@@ -32,13 +35,14 @@ def read_data_from_files():
     'Capacity' : read_lists[1], 
     'Departures' : read_lists[2],
     'Delays' : read_lists[3],
-    # 'Throughput' : content,
-    'Throughput' : read_lists[4],
+    'Throughput' : content,
+    # 'Throughput' : read_lists[4],
     'CWND' : read_lists[5]
     }
 
-def display_data_graph(data, y_label = "Data", x_label="Sample"):
-    samples = range(1, len(data) + 1)
+def display_data_graph(data, y_label = "Data", x_label="Sample", samples = None):
+    if samples is None:
+        samples = range(1, len(data) + 1)
     plt.plot(samples, data)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
@@ -65,10 +69,15 @@ def main():
 
     # samples = range(1, len(results['CWND']) + 1)
 
-    # display_data_graph(results['CWND'], y_label='CWND')
-    # display_data_graph(results['Throughput'], y_label='Throughput')
+    # display_data_graph(results['CWND'], y_label='CWND (pkts)')
+    # display_data_graph(results['Delays'], y_label='Delays')
 
-    print(sum(results['Throughput'])/len(results['Throughput']))
+    samples =np.arange(0, (len(results['Throughput'])/2), 0.5)
+    display_data_graph(results['Throughput'], y_label='Throughput (Mbps)', x_label='seconds', samples=samples)
+    # print(results['Throughput'])
+    print("SUM: {}".format(max(results['Throughput'])))
+    print("LEN: {}".format(len(results['Throughput'])))
+    print((sum(results['Throughput']))/len(results['Throughput']))
 
     # fig, ax = plt.subplots()
 
