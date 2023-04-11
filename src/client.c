@@ -254,6 +254,7 @@ int main(int argc, char **argv)
 	//Receive data
 	while(1)
 	{
+		double start_timestamp1 = (double)timestamp();
 		len=recv(sockfd,buf,BUFSIZ,0);
 		if(len<=0)
 		{
@@ -262,8 +263,8 @@ int main(int argc, char **argv)
 		}
 
 		// Patryk Code
-		double elapsed_time = ((double)(timestamp() - start_timestamp)) / 1000000.0; // this is in seconds
-		double throughput = (double)len/ elapsed_time;
+		double elapsed_time = ((double)(timestamp() - start_timestamp1)) / 1000000.0; // this is in seconds
+		double throughput = ((double)len/1000000.0)/ elapsed_time;
 		fprintf(throughput_file, "%lf\n", throughput);
 
 	}
