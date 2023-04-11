@@ -120,6 +120,15 @@ int main(int argc, char **argv)
 	char buf[BUFSIZ];                           	//Receive buffer
 	unsigned long fct;	                            //Flow Completion Time
 
+	FILE *throughput_file;
+	throughput_file = fopen("throughput.txt", "w");
+	if (throughput_file == NULL) {
+	    printf("Error opening file!\n");
+	    return 1;
+	}
+
+
+
 	//Initialize ‘server’
 	memset(server,'\0',16);
 	//Initialize 'query'
@@ -251,11 +260,20 @@ int main(int argc, char **argv)
 			//DBGPRINT(DBG,2,"len:%d\n",len);	
 			break;
 		}
+
+		// Patryk Code
+		double elapsed_time = ((double)(timestamp() - start_timestamp)) / 1000000.0; // this is in seconds
+		double throughput = (double)len/ elapsed_time;
+		fprintf(throughput_file, "%lf\n", throughput);
+
 	}
 	//Get end time after receiving all of the data 
 	//Close connection
 	close(sockfd);
     DBGMARK(DBG,1,"after receiving data\n\n");
+
+    // Patryk Code
+    fclose(throughput_file);
     return 0;
 }
 
