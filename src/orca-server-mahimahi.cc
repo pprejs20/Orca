@@ -162,15 +162,16 @@ void start_server(int flow_num, int client_port)
     sprintf(container_cmd,"sudo -u `whoami` %s/client $MAHIMAHI_BASE 1 %d",path,client_port);
     char cmd[1000];
     char final_cmd[1000];
+
     // Patryk Altered code
     
     if (arg_len == 15){ 
         if (first_time==4 || first_time==2){
             std::cout << "[Patryk Log] \nsudo -u `whoami` mm-loss " << loss_value << " mm-delay " << delay_ms << " mm-link " << path << "/../traces/" << uplink << " " << path << "/../traces/" << downlink << " --downlink-log=" << path << "/log/down-" << log_file << " --uplink-queue=droptail --uplink-queue-args=\"packets=" << qsize << "\" --downlink-queue=droptail --downlink-queue-args=\"packets=" << qsize << "\" -- sh -c \'" << container_cmd << "\' \n\n&";
-            sprintf(cmd, "sudo -u `whoami`   mm-loss %f mm-delay %d mm-link %s/../traces/%s %s/../traces/%s --downlink-log=%s/log/down-%s --uplink-queue=droptail --uplink-queue-args=\"packets=%d\" --downlink-queue=droptail --downlink-queue-args=\"packets=%d\" -- sh -c \'%s\' &",loss_value,delay_ms,path,uplink,path,downlink,path,log_file,qsize,qsize,container_cmd);
+            sprintf(cmd, "sudo -u `whoami`  mm-loss downlink %f mm-delay %d mm-link %s/../traces/%s %s/../traces/%s --downlink-log=%s/log/down-%s --uplink-queue=droptail --uplink-queue-args=\"packets=%d\" --downlink-queue=droptail --downlink-queue-args=\"packets=%d\" -- sh -c \'%s\' &",loss_value,delay_ms,path,uplink,path,downlink,path,log_file,qsize,qsize,container_cmd);
         }
         else{
-            sprintf(cmd, "sudo -u `whoami`  mm-loss %f mm-delay %d mm-link %s/../traces/%s %s/../traces/%s --uplink-queue=droptail --uplink-queue-args=\"packets=%d\" --downlink-queue=droptail --downlink-queue-args=\"packets=%d\" -- sh -c \'%s\' &",loss_value,delay_ms,path,uplink,path,downlink,qsize,qsize,container_cmd);
+            sprintf(cmd, "sudo -u `whoami`  mm-loss downlink %f mm-delay %d mm-link %s/../traces/%s %s/../traces/%s --uplink-queue=droptail --uplink-queue-args=\"packets=%d\" --downlink-queue=droptail --downlink-queue-args=\"packets=%d\" -- sh -c \'%s\' &",loss_value,delay_ms,path,uplink,path,downlink,qsize,qsize,container_cmd);
         }
     }
     else {
@@ -440,7 +441,26 @@ void* CntThread(void* information)
     int tmp_step=0;
 
     // Patryk variable
-    vector<double> cwnd_list;
+
+    int patryk_start_time = timestamp();
+    int patryk_time_elapsed = 0;
+    vector<int> timeframe_cwnd;
+    vector<int> rtt_list; 
+
+    FILE *cwnd_file;
+    cwnd_file = fopen("patryk_logs/cwnd_list.txt", "w");
+    if (cwnd_file == NULL) {
+        printf("Error opening file!\n");
+        return((void *)1);
+    }
+
+    FILE *rtt_file;
+    rtt_file = fopen("patryk_logs/rtt.txt", "w");
+    if (cwnd_file == NULL) {
+        printf("Error opening file!\n");
+        return((void *)1);
+    }
+
 
     while(send_traffic)  
 	{
@@ -458,9 +478,58 @@ void* CntThread(void* information)
                 }
                 if(orca_info.avg_urtt>0)
                 {
-                    cwnd_list.push_back(orca_info.cwnd);
-                    std::cout << "[Patryk Log] CWND: " << orca_info.cwnd << std::endl;
+
+
+
+
+
+                    // [Patryk Code]
+                    patryk_time_elapsed = timestamp() - patryk_start_time;
+                    if (patryk_time_elapsed >= 500000) {
+                        // std:cout << "Doing pat calculations\n";
+                        double pat_srtt =(double)((orca_info.srtt_us>>3)/1000.0);
+                        std::cout << "SRTT: " << pat_srtt << "\n";
+                        int sum = 0; // cwnd sum
+                        int rtt_sum = 0; // rtt sum 
+                        for (int i = 0; i < timeframe_cwnd.size(); i++) {
+                            sum += timeframe_cwnd[i];
+                        }
+                        for (int i = 0; i < rtt_list.size(); i++) {
+                            rtt_sum += rtt_list[i];
+                        }
+                        int average_cwnd = (int)sum/timeframe_cwnd.size();
+
+
+
+                        int average_rtt = (int)rtt_sum/rtt_list.size();
+                        fprintf(cwnd_file, "%ld\n", average_cwnd);
+                        // fprintf(rtt_file, "%ld\n", average_rtt/1000); // store rtt in ms 
+                        fprintf(rtt_file, "%lf\n", (double)((orca_info.srtt_us>>3)/1000.0)); // store rtt in ms 
+
+                        patryk_start_time = timestamp();
+                        patryk_time_elapsed = 0;
+                        timeframe_cwnd.clear();
+                    }
+                    else {
+                        timeframe_cwnd.push_back(orca_info.cwnd);
+                        rtt_list.push_back(orca_info.avg_urtt);
+                    }
+
+
+
+                    
+
+                    // std::cout << "[Patryk Log] CWND: " << orca_info.cwnd << std::endl;
+
+
+
+
+
+
                     t1=timestamp();
+
+
+
                     
                     double time_delta=(double)(t1-t0)/1000000.0;
                     double delay=(double)orca_info.avg_urtt/1000.0;
@@ -601,33 +670,11 @@ void* CntThread(void* information)
     shmctl(shmid, IPC_RMID, NULL);
     shmdt(shared_memory_rl);
     shmctl(shmid_rl, IPC_RMID, NULL);
-    
+
+
     // Patryk Code
-
-    FILE *fp = fopen("patryk_logs/cwnd_list.txt", "w");
-    std::cout << "[Patryk Log] Opening new file in path: ../patryk_logs/data/cwnd_list.txt\n";
-
-    // Check if file was opened successfully
-    if (fp == NULL) {
-        printf("Error opening file.\n");
-        return ((void*)0);
-    }
-
-    int cwnd_list_size = cwnd_list.size();
-
-    /// Write the contents of cwnd_list to the file
-    std::ofstream file_stream;
-    file_stream.open("patryk_logs/cwnd_list.txt");
-
-    for (int i = 0; i < cwnd_list_size; i++) {
-        std::cout << "[Patryk Log] Saving CWND: " << cwnd_list[i] << std::endl;
-        file_stream << cwnd_list[i] << ",";
-        // fprintf(fp, "%d,", cwnd_list[i]);
-    }
-
-    // Close the file
-    file_stream.close();
-    fclose(fp);
+    fclose(cwnd_file);
+    fclose(rtt_file);
 
     return((void *)0);
 }
@@ -738,6 +785,7 @@ void* DataThread(void* info)
 		{
 			DBGMARK(DBGSERVER,5,"++++++\n");
 			len-=send(sock_local,write_message,strlen(write_message),0);
+            // std::cout<< "[Patryk Log] Length of message: " << len << "\n"; 
 		    usleep(50);         
             DBGMARK(DBGSERVER,5,"------\n");
 		}
