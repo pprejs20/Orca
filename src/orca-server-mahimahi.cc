@@ -494,9 +494,9 @@ void* CntThread(void* information)
                         for (int i = 0; i < timeframe_cwnd.size(); i++) {
                             sum += timeframe_cwnd[i];
                         }
-                        for (int i = 0; i < rtt_list.size(); i++) {
-                            rtt_sum += rtt_list[i];
-                        }
+                        // for (int i = 0; i < rtt_list.size(); i++) {
+                        //     rtt_sum += rtt_list[i];
+                        // }
                         int average_cwnd = (int)sum/timeframe_cwnd.size();
 
 
