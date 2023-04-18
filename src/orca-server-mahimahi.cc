@@ -441,8 +441,8 @@ void* CntThread(void* information)
     int tmp_step=0;
 
     // Patryk variable
-
     int patryk_start_time = timestamp();
+    int patryk_start_time2 = timestamp();
     int patryk_time_elapsed = 0;
     vector<int> timeframe_cwnd;
     vector<int> rtt_list; 
@@ -468,7 +468,7 @@ void* CntThread(void* information)
        {
            got_no_zero=0;
            usleep(report_period*1000);
-           while(!got_no_zero && send_traffic)
+           while(!got_no_zero && send_traffic)  
            {
                 ret1= get_orca_info(sock_for_cnt[i],&orca_info);
                 if(ret1<0)
@@ -481,7 +481,8 @@ void* CntThread(void* information)
 
 
 
-
+                    fprintf(cwnd_file, "%ld,%ld\n", orca_info.cwnd, timestamp()-patryk_start_time2);
+                    fprintf(rtt_file, "%lf\n", (double)((orca_info.srtt_us>>3)/1000.0)); // store rtt in ms 
 
                     // [Patryk Code]
                     patryk_time_elapsed = timestamp() - patryk_start_time;
@@ -502,9 +503,9 @@ void* CntThread(void* information)
 
 
                         int average_rtt = (int)rtt_sum/rtt_list.size();
-                        fprintf(cwnd_file, "%ld\n", average_cwnd);
+                        // fprintf(cwnd_file, "%ld\n", average_cwnd);
                         // fprintf(rtt_file, "%ld\n", average_rtt/1000); // store rtt in ms 
-                        fprintf(rtt_file, "%lf\n", (double)((orca_info.srtt_us>>3)/1000.0)); // store rtt in ms 
+                        // fprintf(rtt_file, "%lf\n", (double)((orca_info.srtt_us>>3)/1000.0)); // store rtt in ms 
 
                         patryk_start_time = timestamp();
                         patryk_time_elapsed = 0;
