@@ -253,7 +253,10 @@ int main(int argc, char **argv)
 	}
     //DBGPRINT(0,0,"Request is sent to server ...\n");
     DBGMARK(DBG,1,"after sending request\n");
+
+
 	//Receive data
+	int patryk_start_time = timestamp();
 	double len_sum = 0.0; 
 	int time_elapsed1 = 0;
 	int count = 0;
@@ -283,26 +286,29 @@ int main(int argc, char **argv)
 		time_elapsed1 += elapsed_time;
 		len_sum += len;
 
-		if (time_elapsed1 >= 500000) {
-			std::cout << "Time elapsed: " << time_elapsed1 << "\n";
+		if (time_elapsed1 >= 20000) {
+			// std::cout << "Time elapsed: " << time_elapsed1 << "\n";
 			double throughput = ((double)len_sum * 8)/ ((double)time_elapsed1 / 1000000.0); // this is in seconds
 			throughput = throughput / 1000000.0;
-			fprintf(throughput_file, "%lf\n", throughput);
+			// fprintf(throughput_file, "%lf\n", throughput);
+			fprintf(throughput_file, "%lf,%ld\n", throughput, timestamp()-patryk_start_time);
+			// std::cout << "Wrote value: " << throughput << "\n"; 
 			time_elapsed1 = 0; 
 			len_sum = 0.0;
 
 		}
-		
-		
-
 	}
+
+
+	// Patryk Code
+	std::cout << "Closing throughput file (throughput.txt)\n";
+    fclose(throughput_file);
+
 	//Get end time after receiving all of the data 
 	//Close connection
 	close(sockfd);
     DBGMARK(DBG,1,"after receiving data\n\n");
 
-    // Patryk Code
-    fclose(throughput_file);
     return 0;
 }
 
