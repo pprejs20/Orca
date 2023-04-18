@@ -18,6 +18,8 @@ latency=$9
 finish_time=${10}
 qsize=${11}
 max_it=${12}
+# loss_value=${13:-0.0}
+loss_value=0.00
 
 echo "Running orca-$scheme: $down"
 
@@ -27,9 +29,9 @@ log="orca-$scheme-$down-$up-$latency-${period}-$qsize"
 
 #Bring up the actor i:
 echo "will be done in $finish_time seconds ..."
-echo "$path/orca-server-mahimahi $port $path ${period} ${first_time} $scheme $id $down $up $latency $log $finish_time $qsize $max_it"
+echo "$path/orca-server-mahimahi $port $path ${period} ${first_time} $scheme $id $down $up $latency $log $finish_time $qsize $max_it $loss_value" 
 
-$path/orca-server-mahimahi $port $path ${period} ${first_time} $scheme $id $down $up $latency $log $finish_time $qsize $max_it
+$path/orca-server-mahimahi $port $path ${period} ${first_time} $scheme $id $down $up $latency $log $finish_time $qsize $max_it $loss_value
 
 #sudo killall -s15 python
 #sleep 10
@@ -39,7 +41,11 @@ then
     echo "Doing Some Analysis ..."
     out="sum-${log}.tr"
     echo $log >> $path/log/$out
-    $path/mm-thr 500 $path/log/down-${log} 1>tmp 2>res_tmp
+    $path/mm-thr 500 $path/log/down-${log} 1>tmp 2>res_tmp  
+    # echo "================ Patryk Stuff ================"
+    # cat $path/log/down-${log}
+    # echo "=============================================="
+
     cat res_tmp >>$path/log/$out
     echo "------------------------------" >> $path/log/$out
     rm *tmp
