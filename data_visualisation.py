@@ -88,6 +88,7 @@ def main():
     print(results['Throughput'][1][0:5])
     print("len cwnd: {}".format(len(results['CWND'])))
     print("CWND Avg (pkts): {}".format((sum(results['CWND'][0]))/len(results['CWND'][0])))
+    print("CWND Standard Deviation: {}".format(np.std(results['CWND'])))
     print("Throughput Avg (Mbps): {}".format((sum(results['Throughput'][0]))/len(results['Throughput'][0])))
     print("SRTT Avg (ms): {}".format((sum(results['RTT']))/len(results['RTT'])))
 
@@ -97,7 +98,7 @@ def main():
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 15), sharex=True)
     fig.tight_layout(pad=4.0)
 
-    display_data_graph(ax1, results['Throughput'][0], y_label='Throughput (Mbps)', x_label='Time (seconds)', samples=results['Throughput'][1], linewidth=0.5)
+    display_data_graph(ax1, results['Throughput'][0][:-40], y_label='Throughput (Mbps)', x_label='Time (seconds)', samples=results['Throughput'][1][:-40], linewidth=0.5)
     display_data_graph(ax2, results['CWND'][0], y_label='CWND (pkt)', x_label='Time (seconds)', samples=results['CWND'][1], linewidth=0.5)
     display_data_graph(ax3, results['RTT'], y_label='SRTT (ms)', x_label='Time (seconds)', samples=results['CWND'][1], linewidth=0.5)
 
