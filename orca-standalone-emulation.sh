@@ -24,12 +24,17 @@ then
 
     #Use a wired48 link for both down & up links (you just need to change the downlink side, if you need.)
     dl=48
-    downl="wired$dl"
-    upl="wired48"
+    # downl="wired$dl"
+    # upl="wired48"
+    downl="variable_cycle"
+    upl="variable_cycle"
     #one-way delay=10ms
     del=10
     bdp=$((2*dl*del/12))     #12Mbps=1pkt per 1 ms ==> BDP=2*del*BW=2*del*dl/12
-    qs=$((2*bdp))
+
+    # 1 pkt = 1504 Bytes
+    # qs=$((2*bdp)) #qsize is in packets
+    qs=160
 
     # For the Step-scenraio, you can use follwoing parameters:
     #downl="step-10s-3-level"
@@ -53,6 +58,8 @@ then
     #Make sure that learner and actors are down ...
     for i in `seq 0 $((num_actors))`
     do
+        sleep 5 
+        
         sudo killall -s15 python
         sudo killall -s15 orca-server-mahimahi
         sudo killall -s15 client
