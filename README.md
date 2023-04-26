@@ -139,3 +139,5 @@ in the `traces` folder you will fine the following files:
 3. `variable_cycle`
 
 These are the traces for the bandwidth experiments conducted and documented in the project report.
+
+The experiment is run by running the command `./orca-standalone-emulation.sh 44444`
