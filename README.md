@@ -123,3 +123,19 @@ You can check out the summary of results at rl-module/log/sum-*
 
 ### Cellular traces:
 To use traces avaialbe @ https://github.com/Soheil-ab/Cellular-Traces-NYC , copy them to the traces folder of the project.
+
+###Individual Project Notes
+
+Buffer size(qsize) and bandwidth (`downl` and `upl` variables are set to the corresponding trace files) are manipulated in the `orca-standalone-emulation.sh` file.
+
+Non-Congestive loss is modified in the `actor.sh` file using the `loss_value` variable.
+
+Run `data_visualisation.py` after running an experiment to display graphs and to view average values for performance metrics.
+
+in the `traces` folder you will fine the following files:
+
+1. `steep_increase`
+2. `steep_decrease`
+3. `variable_cycle`
+
+These are the traces for the bandwidth experiments conducted and documented in the project report.
