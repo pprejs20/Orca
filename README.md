@@ -132,7 +132,7 @@ Non-Congestive loss is modified in the `actor.sh` file using the `loss_value` va
 
 Run `data_visualisation.py` after running an experiment to display graphs and to view average values for performance metrics.
 
-in the `traces` folder you will fine the following files:
+In the `traces` folder you will fine the following files:
 
 1. `steep_increase`
 2. `steep_decrease`
