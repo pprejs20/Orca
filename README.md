@@ -124,7 +124,7 @@ You can check out the summary of results at rl-module/log/sum-*
 ### Cellular traces:
 To use traces avaialbe @ https://github.com/Soheil-ab/Cellular-Traces-NYC , copy them to the traces folder of the project.
 
-###Individual Project Notes
+### Individual Project Notes
 
 Buffer size(qsize) and bandwidth (`downl` and `upl` variables are set to the corresponding trace files) are manipulated in the `orca-standalone-emulation.sh` file.
 
